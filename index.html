@@ -61,49 +61,85 @@
 			if (drapDown.prototype.init == undefined) {
 				drapDown.prototype.init = function(){
 
+					//获取下拉的元素
 					drap_down = document.getElementById(this.id);
 
+					//设置下拉元素的样式
 					drap_down.style.cssText = 'position:absolute;top:0;left:0;width:100%;z-index:19920219;';
 
 					drap_down.addEventListener("touchstart", function(event){
+
 						//如果这个元素的位置内只有一个手指的话
 						if (event.targetTouches.length == 1) {
+
+							//获取第一个触摸点
 				    		var touch = event.targetTouches[0];
-				      		//把元素放在手指所在的位置
-				         	g_first_y_position = touch.pageY;
+
+				      		//记录第一个触摸点的y坐标
+				         	g_y_position = touch.pageY;
 				    	}
 					});
 
 					drap_down.addEventListener("touchmove", function(event){
+
 						//如果这个元素的位置内只有一个手指的话
 						if (event.targetTouches.length == 1) {
-							
-				    		var touch = event.targetTouches[0];
-				      		// 把元素放在手指所在的位置
-				      		var variable = touch.pageY-g_first_y_position;
-				      		g_first_y_position = touch.pageY;
 
+							//获取第一个触摸点
+				    		var touch = event.targetTouches[0];
+
+				      		//获取本次触摸点与上次触摸点的y间距
+				      		var variable = touch.pageY - g_y_position;
+
+				      		//记录本次触摸点的y坐标
+				      		g_y_position = touch.pageY;
+
+				      		//获取元素当前的y坐标
 				      		var tmp = drap_down.style.top;
 							var now=(tmp).substring(0,tmp.length-2);
+
+							//定义元素y坐标移动的间距变量
 							var intervel = 0;
 
 				      		if(variable > 0){
-				      			if(drap_down.getBoundingClientRect().top > 0 || drap_down.getBoundingClientRect().top == 0 ){
-					      			event.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+
+				      			//元素y坐标与可视化区域的顶部的间距大于零或则等于零，则可下滑；
+				      			//判断元素y坐标与可视化区域的顶部的间距等于零，
+				      			//是考虑到屏幕滚动到下方，此时下拉不应该触发模块下滑效果；
+				      			//也需要判断元素y坐标与可视化区域的顶部的间距大于零，
+				      			//不这样做的话，则无法下拉模块
+				      			if(drap_down.getBoundingClientRect().top == 0 || drap_down.getBoundingClientRect().top > 0){
+
+				      				//阻止触摸时浏览器的缩放、滚动条滚动等
+					      			event.preventDefault(); 
+
 					      			flag = true;
+
+					      			//元素匀速下滑100px，之后则减速下滑
 									if(now < 100){
 										intervel = variable * 0.5;
 									}else {
 										intervel = Math.log(now)-Math.log(now-90);
 									}
+
+									//改变元素的y坐标，即改变元素的位置
 						         	this.style.top = now * 1.0 + intervel + 'px';
 					      		}
 				      		}else {
+
+				      			//元素y坐标与可视化区域的顶部的间距大于零，则可上升
 				      			if(drap_down.getBoundingClientRect().top > 0){
-				      				event.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+
+				      				//阻止触摸时浏览器的缩放、滚动条滚动等
+				      				event.preventDefault(); 
+
+				      				//元素y坐标递减过程中很难保证减到刚好为0，
+				      				//故判断其减到少于1.5px时，则让元素y坐标为0
 				  					if(now < 1.5){
 										this.style.top = '0px';
 									}else {
+
+										//让元素加速上升
 										intervel = Math.log(now);
 										this.style.top = now * 1.0 - intervel + 'px';
 									}
@@ -113,19 +149,29 @@
 					});
 
 					drap_down.addEventListener("touchend", function(event){
+
+						//只有触摸并移动过，才能触动自动上升回滚功能
 						if(flag){
+
+							//初始参数复原
 							flag = false;
-							g_first_y_position = 0;
+							g_y_position = 0;
+
 							clearInterval(timer);
+
 							timer=setInterval(function(){
+
+								//获取元素当前的y坐标
 								var tmp = drap_down.style.top;
 								var now=(tmp).substring(0,tmp.length-2);
+
 								if(now < 1){
 									clearInterval(timer);
 									drap_down.style.top = 0;
 								}else {
 									drap_down.style.top = now * 1.0 - 20 + 'px';
 								}
+								
 							}, 10);
 						}
 						
