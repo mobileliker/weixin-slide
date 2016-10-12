@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=3, minimum-scale=1, user-scalable=no">
+	<meta name="HandheldFriendly" content="true">
+	<meta name="screen-orientation" content="portrait">
+	<title>drap Down</title>
+	<style type="text/css">
+		body,h1,h2,h3,h4,h5,h6,blockquote,p,pre,dl,dd,ol,ul,li,a,span,caption,th,td,form,fieldset,legend,input,button,textarea,address{margin:0;padding:0}
+
+		html,body {
+			width: 100%;
+			height: 100%;
+		}
+
+		#background {
+			width: 100%;
+			height: 100%;
+			color: grey;
+			background-color: black;
+		}
+
+		#background p {
+			padding-top: 10px;
+			text-align: center;
+		}
+
+		#background p:first-child {
+			padding-top: 40px;
+		}
+
+		#fontground {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 1000px;
+			background-color: #fafafa;
+			z-index: 19920219;
+		}
+	</style>
+</head>
+<body>
+	<div id="background">
+		<p>由Rigar浏览器内核</p>
+		<p>提供支持</p>
+	</div>
+	<div id="fontground"></div>
+
+	<script type="text/javascript">
+		var g_first_y_position = 0;
+		var timer = null;
+		var old_y_position = 0;
+		var flag = false;//是否触发回滚
+
+		window.onload=function(){
+			drap_down = document.getElementById('fontground');
+
+			drap_down.addEventListener("touchstart", function(event){
+				//如果这个元素的位置内只有一个手指的话
+				if (event.targetTouches.length == 1) {
+		    		var touch = event.targetTouches[0];
+		      		//把元素放在手指所在的位置
+		         	g_first_y_position = touch.pageY;
+		    	}
+			});
+
+			drap_down.addEventListener("touchmove", function(event){
+				//如果这个元素的位置内只有一个手指的话
+				if (event.targetTouches.length == 1) {
+					
+		    		var touch = event.targetTouches[0];
+		      		// 把元素放在手指所在的位置
+		      		var variable = touch.pageY-g_first_y_position;
+		      		g_first_y_position = touch.pageY;
+
+		      		var tmp = drap_down.style.top;
+					var now=(tmp).substring(0,tmp.length-2);
+					var intervel = 0;
+
+		      		if(variable > 0){
+		      			if(drap_down.getBoundingClientRect().top > 0 || drap_down.getBoundingClientRect().top == 0 ){
+			      			event.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+			      			flag = true;
+							if(now < 100){
+								intervel = variable * 0.5;
+							}else {
+								intervel = Math.log(now)-Math.log(now-90);
+							}
+				         	this.style.top = now * 1.0 + intervel + 'px';
+			      		}
+		      		}else {
+		      			if(drap_down.getBoundingClientRect().top > 0){
+		      				event.preventDefault(); //阻止触摸时浏览器的缩放、滚动条滚动等
+		  					if(now < 1.5){
+								this.style.top = '0px';
+							}else {
+								intervel = Math.log(now);
+								this.style.top = now * 1.0 - intervel + 'px';
+							}
+		      			}
+		      		}
+		    	}
+			});
+
+			drap_down.addEventListener("touchend", function(event){
+				if(flag){
+					flag = false;
+					g_first_y_position = 0;
+					clearInterval(timer);
+					timer=setInterval(function(){
+						var tmp = drap_down.style.top;
+						var now=(tmp).substring(0,tmp.length-2);
+						if(now < 1){
+							clearInterval(timer);
+							drap_down.style.top = 0;
+						}else {
+							drap_down.style.top = now * 1.0 - 20 + 'px';
+						}
+					}, 10);
+				}
+				
+			});
+
+		}
+
+	</script>
+</body>
+</html>
